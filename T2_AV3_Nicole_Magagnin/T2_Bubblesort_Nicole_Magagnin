@@ -1,0 +1,189 @@
+############################################################################################################
+# Disciplina: Arquitetura e Organização de Computadores
+# Atividade: Avaliação 03 – Programação em Linguagem de Montagem
+# Bubble sort
+# Aluno: Nicole Migliorini Magagnin
+# 
+#
+
+###############################################################################################
+
+		.data
+	Vetor: .word 0,0,0,0,0,0,0,0	#Vetor de 8 elementos	
+	EntraVetor:.asciiz "Entre com o tamanho do vetor (máx. = 8)" 	 #Mensagem de solicitação do tamanho do vetor
+	PulaLinha:.asciiz "\n"					     
+	Invalido: .asciiz "Valor inválido"			     	 #Caso o valor seja maior que 8
+	LeVet: .asciiz "Vetor["				             	 #Lê primeira parte do vetor
+	FechaVet: .asciiz "] = "					 #Fecha chaves do vetor 
+	ElementosVet: .asciiz "Digite os elementos do vetor" 		
+	msg: .asciiz "Vetor ordenado:   "			
+	space: .asciiz "\t"	
+		
+	
+	
+	#S0 = armazena o vetor
+	#S1 = armazena o número de elementos do vetor
+	
+	
+	
+	
+	
+	.text
+	
+	j main
+#######################################################################Bubblesort###########################################################
+Bubblesort:
+	addi $sp, $sp,-24
+	sw $s0,20($sp) 			#Armazena na memória
+	sw $s1,16($sp)
+	sw $s2,12($sp)
+	sw $s3,8($sp)
+	sw $s4,4($sp)
+	sw $s5,0($sp)
+		
+		
+	add $s1, $a0, $0		#S1 = Número de vetores
+	add $s2, $0, $0 		#S2 = Será usado para o swap
+	add $s3, $s3, $0 		#S3 = Será usado para o swap
+	add $s4, $0, 1			#S4 = i*4
+	add $s4, $s4, $s4		#i*4
+	add $s4, $s4, $s4
+	addi $s1, $s1, -1 		#i = n-1
+	move $s0, $a1 			#Move endereço do vetor para s0
+		
+		
+Loop1:
+		
+	la $s0, Vetor			#Carrega a primeira posição do vetor
+	add $s5, $0, $0			#Zera j
+	beq $s1,$0, LoopFim		#Até que i seja igual a 0, faz o sort
+
+Loop2:
+	beq $s5,$s1, Decrementa  	#Se j for igual a i
+	lw $s2, 0($s0)			#Carrega j
+	lw $s3, 4($s0) 			#Carrega j+1
+	bgt $s2, $s3, swap		#Se j > j+1, troca
+	add $s0, $s0, $s4     		#Próxima posição do vetor
+	addi $s5, $s5, 1		#j++
+	j Loop2				#Volta para o loop2, até que j seja = i
+	
+Decrementa:
+	add $s1, $s1, -1		#i--
+	j Loop1				#Volta ao loop externo
+
+swap:
+	sw $s2, 4($s0)			#Troca o valor de j por j+1
+	sw $s3, 0($s0)			#Troca o valor de j+1 por j
+	
+	beq $s5,$s1, Decrementa		#Se j for igual a i
+	add $s0, $s0, $s4     		#Próxima posição do vetor
+	addi $s5, $s5, 1		#j++
+
+	
+	j Loop2
+
+
+LoopFim:
+	
+	lw $s5, 0($sp)			#Desempilha
+	lw $s4, 4($sp)
+	lw  $s3, 8($sp)
+	lw $s2, 12($sp)
+	lw $s1, 16($sp)
+	lw $s0, 20($sp)
+	addi $sp, $sp,24
+	jr $ra				#Retorna ao main
+
+#####################################################################main##########################################################				
+main:
+		addi $s0, $0, 1		#Incializa todos registradores em valores diferentes de zero
+		addi $s1, $0, 2
+		addi $s2, $0, 3
+		addi $s3, $0, 4
+		addi $s4, $0, 5
+		addi $s5, $0, 6
+		
+		la $s0, Vetor 		#Carrega endereço do vetor em $s0
+		
+Elementos:
+		li $v0, 4
+		la $a0, PulaLinha
+		syscall
+		la $s0, Vetor
+		li $v0,4  		#Imprime String 
+		la $a0, EntraVetor 	#Solicita o tamanho do vetor
+		syscall
+		li $v0,5 		#Lê o tamanho do vetor
+		syscall	
+		add $s1, $zero, $v0	#Guarda o tamanho em s1
+		blt $s1,2,invalido 	#Se o número de elementos for menor que 2, é exibido erro
+		bgt $s1,8,invalido	#Se o número de elementos for maior que 8, é exibido erro
+		add $t0, $zero, $zero	#Zera o contador i
+		li $v0,4
+		la $a0, ElementosVet	#Chama mensagem "Digite os elementos do vetor"
+		syscall
+		li $v0, 4
+		la $a0, PulaLinha
+		syscall
+	        la $s0, Vetor		#Carrega novamente o vetor A	
+	
+Leitura: 
+		li $v0, 4 		 #Chama mensagem
+		la $a0, LeVet		 #Chama "Vetor["
+		syscall
+		li $v0, 1 		#Imprime int
+		add $a0, $zero,$t0 	#imprime indíce
+		syscall
+		li $v0, 4
+		la $a0, FechaVet	#Fecha vetor
+		syscall
+		li $v0,5		#Lê int - Número correspondente ao elemento x do vetor
+		syscall	
+		sw $v0, 0($s0)  	#salva  o valor digitado no vetor , carregado no s0
+		addi $t1, $0, 1		#i*4
+		add $t1, $t1, $t1
+		add $t1, $t1, $t1
+		add $s0, $t1, $s0	#Soma i ao endereço-base do vetor
+		addi $t0,$t0,1 		# i++
+		blt $t0, $s1, Leitura 	#i<número de elementos continua no loop
+		add $t0, $zero, $zero	#zera reg t0
+		la $s0, Vetor
+		move $a1, $s0 	 	#Carrega endereço base do vetor em a1
+		add $a0, $0, $s1	#Carrega número de elementos do vetor em a0
+		
+		jal Bubblesort		#Pula para o bubblesort
+		
+		li $v0, 4
+		la $a0, msg		#Imprime mensagem "Vetor ordenado: "
+		syscall	
+		addi $t1, $0, 1		#i*4
+		add $t1, $t1, $t1
+		add $t1, $t1, $t1
+		add $t0, $0, $0		#Zera contador
+		la $a1, Vetor		#Carrega vetor de volta em a1
+############################################################################## Imprime ##########################################################33		
+Imprime: 	
+		li $v0, 1
+		lw $a0, 0($a1)		 #Imprime o vetor
+		syscall
+		add $a1, $a1, $t1	 #i*4	
+		addi $t0, $t0, 1 	 #cont++
+		li $v0, 4
+		la $a0, space		#Imprime espaço entre os vetores
+		syscall 
+		blt $t0, $s1, Imprime	#Até o contador ser igual ao número de elementos, faz o loop de impressão
+		j Exit			#Senão, sai
+		
+
+###########################################################################Label inválido#####################################################
+invalido: 				#Mensagem de erro sobre o número de elementos
+
+		li $v0, 4 		#Imprimir string
+		la $a0, Invalido 	#Mensgem de número inválido
+		syscall
+		j  Elementos		#Volta para elementos 
+		
+
+Exit:		
+ 		 li $v0, 10             #Chama função de saída
+     		 syscall                    

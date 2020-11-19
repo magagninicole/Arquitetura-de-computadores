@@ -1,0 +1,138 @@
+###################################################################################################
+#	Disciplina: Arquitetura e organização de computadores
+#	Atividade: Avaliação 01 - Programação de linguagem de montagem
+#	Programa 01
+#	Aluna: Nicole Migliorini Magagnin
+#
+#
+###################################################################################################
+
+	.data 	#Declaração de variáveis
+	
+	EntraVetor:.asciiz "Entre com o tamanho do vetor (máx. = 8)" 	 #Mensagem de solicitação do tamanho do vetor
+	PulaLinha:.asciiz "\n"					     
+	Invalido: .asciiz "Valor inválido"			     	 #Caso o valor seja maior que 8
+	LeVet: .asciiz "Vetor["				             	 #Lê primeira parte do vetor
+	FechaVet: .asciiz "] = "					 #Fecha chaves do vetor 
+	ImprimeMaior: .asciiz "O maior elemento do vetor é o   " 		
+	ImprimeN:.asciiz	"  e seu valor é    "
+	ElementosVet: .asciiz "Digite os elementos do vetor" 		
+	Vet_A: .word 0,0,0,0,0,0,0,0  				    	 #Vetor a ser preenchido
+	
+		.text #Segmento de código
+		
+		#$s0 = Armazena número de elementos do vetor
+		#$s1 = Armazena elementos do vetor
+		#$t0 = i 
+		#t1 = Armazena posição do vetor para comparação 
+		#t2 = Armazena próxima posição do vetor para comparação
+		#s3 = Armazena maior vetor
+		#$s4 = Armazena o elemento do maior vetor 
+		
+		la $s1, Vet_A		#Carrega o vetor A em $s1
+Elementos:	
+		li $v0, 4
+		la $a0, PulaLinha
+		syscall
+		la $s1, Vet_A
+		li $v0,4  		#Imprime String 
+		la $a0, EntraVetor 	#Solicita o tamanho do vetor
+		syscall
+		li $v0,5 		#Lê o tamanho do vetor
+		syscall	
+		add $s0, $zero, $v0	#Guarda o tamanho em s0
+		blt $s0,2,ninvalido 	#Se o número de elementos for menor que 1, é exibido erro
+		bgt $s0,8,ninvalido	#Se o número de elementos for maior que 8, é exibido erro
+		
+		add $t0, $zero, $zero	#Zera o contador i
+		
+		li $v0,4
+		la $a0,ElementosVet	#Chama mensagem "Digite os elementos do vetor"
+		syscall
+		li $v0, 4
+		la $a0, PulaLinha
+		syscall
+	
+Leitura: 
+		li $v0, 4 		 #Chama mensagem
+		la $a0, LeVet		 #Chama "Vetor["
+		syscall
+		li $v0, 1 		#Imprime int
+		add $a0, $zero,$t0 	#imprime indíce
+		syscall
+		li $v0, 4
+		la $a0, FechaVet	#Fecha vetor
+		syscall
+		li $v0,5		#Lê int - Número correspondente ao elemento x do vetor
+		syscall	
+		sw $v0, 0($s1)  	#salva  o valor digitado no vetor A, carregado no s1
+		addi $s1, $s1, 4 	#próxima posição, utilizando soma de +4
+		addi $t0,$t0,1 		# i++
+		blt $t0, $s0, Leitura 	#i<número de elementos continua no loop
+		
+		add $t0, $zero, $zero	#zera reg t0
+		
+		
+		
+		la $s1, Vet_A		#Carrega novamente o vetor A	
+		
+		lw $s3, 0($s1)  	#Carrega a primeira posição do vetor em s3
+		add $t2, $0, $s3	#Adiciona o valor do vetor no registrador temporário t2
+		addi $s1, $s1, 4 	#próxima posição
+		
+		addi $t0, $t0, 1 	#i++
+		
+Maior: 
+		lw  $t1, 0($s1)		#Carrega em t1 o valor da posição do vetor, afim de compará-la com a anterior
+		addi $s1, $s1, 4        #Próxima posição
+		bgt $t1, $t2, ValidaMaior #Se o ve tor atual for maior que o anterior, vai para a label de validação
+		addi $t0, $t0, 1 	#i++
+		blt $t0, $s0, Maior 	#Enquanto i for menor que o número de elementos do vetor, continua a checagem
+		j Imprime		#Se não, pula para impressão
+
+ValidaMaior: 
+		add $t2, $0, $t1	#Coloca o valor anteriormente em t1, em t2, afim de usá-lo na próxima comparação	
+		add $s4, $0, $t0	#Move a posição do maior elemento para S4
+		addi $t0, $t0, 1 	#i++ 
+		add $s3, $0, $t1	#Move o maior valor para s3
+		blt $t0,$s0, Maior 	#Enquanto o contador for menor que o número de elementos, volta para a verificação de maior
+		
+		add $t0, $zero, $zero	#zera i
+		
+		j Imprime		#Se não, salta para a impressão 
+				
+Imprime: 
+		
+		li $v0, 4	      
+		la $a0, ImprimeMaior    #Imprime "O maior elemento do vetor é o   " 
+		syscall
+		li $v0,1 		#Imprime Int
+		add $a0, $zero,$s4 	#Imprime a posição do maior valor que está armazenada em s4
+		syscall
+		li $v0, 4 
+		la $a0, ImprimeN	# imprime "  e seu valor é    "
+		syscall
+		li $v0, 1 		#Imprime int
+		add $a0, $zero, $s3     #Imprime maior valor
+		syscall
+		li $v0, 4
+		la $a0, PulaLinha       #Pula linha
+		syscall
+		
+		addi $s1, $s1, 4       #Próxima posição 
+		j exit		       #Pula para a saída
+		
+		
+
+ninvalido: 				#Mensagem de erro sobre o número de elementos
+
+		li $v0, 4 		#Imprimir string
+		la $a0, Invalido 	#Mensgem de número inválido
+		syscall
+		
+		
+		j  Elementos		#Volta para elementos 
+
+exit:		
+		 li $v0, 10               
+    		 syscall                    

@@ -1,0 +1,180 @@
+###############################################################################################################
+#	Disciplina: Arquitetura e organização de computadores
+#	Atividade: Avaliação 01 - Programação de linguagem de montagem
+#	Programa 02
+#	Aluna: Nicole Migliorini Magagnin
+#
+##############################################################################################################
+
+		.data 
+	VetorA: .asciiz "A["  	#Abre vetor A
+	VetorB: .asciiz "B["	#Abre vetor B
+	VetorC: .asciiz	"C["	#Abre vetor C
+	FechaVet: .asciiz "] = " #Fecha vetores
+	Entrada: .asciiz "Entre com o tamanho do vetor (máx. = 8)   "
+	Invalido: .asciiz "Valor inválido" #Caso o valor seja maior que 8 ou menor que 2
+	PulaLinha:.asciiz "\n"			
+	Vet_A: .word 0,0,0,0,0,0,0,0
+	Vet_B: .word 0,0,0,0,0,0,0,0
+	Vet_C: .word 0,0,0,0,0,0,0,0
+	
+	#s0 = Número de elementos do vetor
+	#t0 = i 
+	#s1 = Vetor A
+	#s2 = Vetor B
+	#s3 = Soma, Vetor C
+	#t3 = Armazena a soma de C, antes de passá-la ao vetor s3
+	
+		.text		#Segmento de código
+	
+		la $s1, Vet_A 	#Carrega vetor A no s1
+		la $s2, Vet_B	#Carrega vetor b no s2
+		la $s3, Vet_C	#Carrega vetor c no s3
+		
+		
+				
+Elementos: 	li $v0,4
+		la $a0, Entrada		#Lê mensagem de entrada
+		syscall
+		li $v0,4
+		la $a0, PulaLinha	#Pula linha
+		syscall
+		li $v0,5		#Recebe número de elementos
+		syscall
+		
+		add $s0, $zero, $v0 	#Adiciona o número de elementos em s0
+		
+		blt $s0, 2, ninvalido	#Se s0 for menor que 1, vai para a label inválido
+		bgt $s0, 8, ninvalido	#Se s0 for maior que 8, vai para a label inválido
+		
+		add $t0, $zero, $zero	#Zera o contador 
+		
+ValoresA: 
+		li $v0, 4 	
+		la $a0, VetorA		#Solicita VetA
+		syscall
+		li $v0, 1
+		add $a0, $t0, $zero	#Mostra a posição do vetor a ser inserida
+		syscall
+		li $v0, 4
+		la $a0, FechaVet	#Fecha posição com "]="
+		syscall
+		li $v0, 5		#Lê o número digitado como valor do vetor
+		syscall	
+		sw $v0, 0($s1)	       #Armazena Vetor A em s1
+		addi $s1, $s1, 4	#Pula para a próxima posição
+		
+		addi $t0, $t0, 1	#i++
+		
+		blt $t0, $s0, ValoresA 	#Se i<número de elementos, volta a pedir o próximo valor de A
+		
+		li $v0,4
+		la $a0, PulaLinha	
+		syscall
+		
+		add $t0,$zero,$zero	#Zera i
+		
+		
+		
+
+ValoresB: 	
+		li $v0, 4 	
+		la $a0, VetorB		#Solicita Vetor B
+		syscall
+		li $v0, 1
+		add $a0, $t0, $zero	#Mostra a posição do vetor a ser inserida
+		syscall
+		li $v0, 4
+		la $a0, FechaVet	#Fecha posição com "]="
+		syscall
+		li $v0, 5		#Lê o número digitado
+		syscall	
+		sw $v0, 0($s2)		#Armazena o valor no vetor em s2
+		addi $s2, $s2, 4 	#Pula para a próxima posição do vetor
+		addi $t0, $t0, 1	#i++
+		
+		blt $t0, $s0, ValoresB 	#Se i<número de elementos, volta a pedir os valores do vetor B
+		
+		add $t0,$zero,$zero	#Zera i
+		
+		li $v0,4
+		la $a0, PulaLinha	
+		syscall
+		
+		la $s1, Vet_A 	#Carrega vetor A no s1
+		la $s2, Vet_B	#Carrega vetor b no s2
+		la $s3, Vet_C	#Carrega vetor c no s3
+	
+		
+		
+Soma: 			#Soma VetorA e VetorB em VetorC
+		
+		
+		lw $t1, 0($s1)		#Carrega vetor A em t1
+		lw $t2, 0($s2)		#Carrega vetor B em t2
+		add  $t3, $t1, $t2 	#Soma Vet_A e Vet_B em t3
+		sw $t3, 0($s3)		#Guarda a soma de C em s3
+		addi $s3,$s3, 4		#Próxima posição do vetor C
+		addi $s2,$s2, 4		#Próxima posição do vetor B
+		addi $s1,$s1, 4		#Próxima posição do vetor A
+		
+	
+		
+		addi $t0, $t0, 1	#i++
+		blt $t0, $s0, Soma	#Enquanto i < número de elementos, volta para a soma 
+		add $t0, $zero, $zero 	#Zera o i
+		la $s3, Vet_C		#Carrega vetor C no s3 novamente
+		
+		j Imprime		#Se não, imprime C
+		
+		
+		
+
+	
+Imprime: 
+
+		li $v0,4
+		la $a0, PulaLinha	
+		syscall
+		li $v0, 4		#Chama impressão do vetor C
+		la $a0, VetorC		
+		syscall
+		li $v0,1		#Imprime contador (equivalente a posição do vetor)
+		add $a0, $zero, $t0	
+		syscall
+		li $v0, 4
+		la $a0, FechaVet	#Fecha indíce
+		syscall
+		li $v0, 1		#Imprime inteiro (Soma do vetor)
+		lw $a0, 0($s3)		#Imprime s3 = Valor de C
+		syscall
+		li $v0,4
+		la $a0, PulaLinha	#Pula linha
+		syscall
+		
+		addi $t0, $t0, 1	#i++
+		addi $s3,$s3, 4		#Próxima posição do vetor C
+		
+		blt $t0, $s0, Imprime	#Enquanto i < número de elementos, Imprime
+		
+		j Exit
+		
+
+ninvalido: 				#Mensagem de erro sobre o número de elementos
+
+		li $v0,4
+		la $a0, PulaLinha	
+		syscall
+		li $v0, 4 		#Imprimir string
+		la $a0, Invalido 	#Mensgem de número inválido
+		syscall
+		li $v0,4
+		la $a0, PulaLinha	
+		syscall
+		
+		j  Elementos		#Volta para elementos 
+		
+Exit: 
+
+		li $v0, 10               
+    		syscall      
